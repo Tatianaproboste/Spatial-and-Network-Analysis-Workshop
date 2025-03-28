@@ -29,8 +29,8 @@
 ### **Sesión Vespertina: Introducción al Análisis de Redes**  
 | Hora  | Tema | Ponente/Facilitador |
 |-----------|------------------------------|----------------------|
-| 13:30 - 14:15  | Introducción al análisis de redes para la transmisión de enfermedades / Métricas clave en el análisis de redes | Tatiana Proboste |
-| 14:15 - 15:00  | Estudio de caso: Aplicación del análisis de redes a reservorios de infección en vida silvestre | Tatiana Proboste |
+| 13:30 - 14:15  | Introduccion y Estudios de caso: Uso del análisis espacial en la vigilancia de enfermedades | Ricardo Soares Magalhães |
+| 14:15 - 15:00  | Introduccion y Estudio de caso: Aplicación del análisis de redes a reservorios de infección en vida silvestre | Tatiana Proboste |
 | 15:00 - 15:15  | **Pausa para el café** |  |
 | 15:15 - 16:00  | Estudio de caso: Aplicaciones del análisis de redes en la vigilancia y epidemiología de la influenza en el Sudeste Asiático y China | Ricardo Soares Magalhães |
 | 16:00 - 16:45  | Preguntas y debate abierto: Desafíos en la implementación de estas técnicas en Chile | Discusión grupal |
@@ -47,10 +47,10 @@
 | Hora  | Actividad | Facilitador |
 |-----------|------------------------------|----------------------|
 | 9:00 - 9:15  | Resumen del Día 1 y visión general de las actividades prácticas | Ricardo Soares Magalhães |
-| 9:15 - 10:45  | Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales) | Tatiana Proboste |
-| 10:45 - 11:00  | **Pausa para el café** |  |
-| 11:00 - 12:30  | Mapeo de la propagación de enfermedades: Análisis de puntos y estimación de densidad Kernel | Ricardo Soares Magalhães |
-| 12:30 - 13:30  | **Almuerzo** |  |
+| 9:15 - 10:45  | sesion 1 - Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel) | Tatiana Proboste | Ricardo
+| 10:45 - 11:00  | **Pausa para el café** | 
+| 11:00 - 12:30  | sesion 2 -  Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel)  | Ricardo Soares Magalhães | Tatiana
+| 12:30 - 13:30  | **Almuerzo** |  
 
 ### **Sesión Vespertina: Práctica de Análisis de Redes**  
 | Hora  | Actividad | Facilitador |
