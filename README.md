@@ -22,7 +22,7 @@
 | 10:05 - 10:25  | Una Salud | Juan Carlos Hormazábal |
 | 10:25 - 10:45  | Pending | FAO-Vanessa Max |
 | 10:45 - 11:05  | **Pausa para el café** |  |
-| 11:05 - 11:25  | Pending | SAG |
+| 11:05 - 11:25  | Pending | Carlos Orellana - Director protección pecuaria (SAG) |
 | 11:25 - 12:30  | Pending | SERNAPESCA |
 | 12:30 - 13:30  | **Almuerzo** |  |
 
