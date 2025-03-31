@@ -18,18 +18,18 @@
 | Hora  | Tema | Ponente/Facilitador |
 |-----------|------------------------------|----------------------|
 | 9:30 - 9:40  | Bienvenida y presentación del taller | Representantes de PUC |
-| 9:40 - 10:00  | Introducción a la Influenza Aviar en Chile y contexto global | Pedro Jiménez |
-| 10:00 - 10:20  | Una Salud | Juan Carlos Hormazábal |
-| 10:20 - 10:40  | Enfoque de Una Salud: Integrando la salud humana, animal y ambiental | Ricardo Soares Magalhães |
-| 10:40 - 11:00  | **Pausa para el café** |  |
-| 11:00 - 11:45  | Fundamentos del análisis espacial para el seguimiento de enfermedades (GIS, técnicas de mapeo, agrupamiento espacial) | Tatiana Proboste |
-| 11:45 - 12:30  | Estudios de caso: Uso del análisis espacial en la vigilancia de enfermedades | Ricardo Soares Magalhães |
+| 9:40 - 10:05  | Introducción a la Influenza Aviar en Chile y contexto global | Pedro Jiménez |
+| 10:05 - 10:25  | Una Salud | Juan Carlos Hormazábal |
+| 10:25 - 10:45  | Pending | FAO-Vanessa Max |
+| 10:45 - 11:05  | **Pausa para el café** |  |
+| 11:05 - 11:25  | Pending | SAG |
+| 11:25 - 12:30  | Pending | SERNAPESCA |
 | 12:30 - 13:30  | **Almuerzo** |  |
 
 ### **Sesión Vespertina: Introducción al Análisis de Redes**  
 | Hora  | Tema | Ponente/Facilitador |
 |-----------|------------------------------|----------------------|
-| 13:30 - 14:15  | Introduccion y Estudios de caso: Uso del análisis espacial en la vigilancia de enfermedades | Ricardo Soares Magalhães |
+| 13:30 - 14:15  | Introduccion y Estudio de caso: Uso del análisis espacial en la vigilancia de enfermedades | Ricardo Soares Magalhães |
 | 14:15 - 15:00  | Introduccion y Estudio de caso: Aplicación del análisis de redes a reservorios de infección en vida silvestre | Tatiana Proboste |
 | 15:00 - 15:15  | **Pausa para el café** |  |
 | 15:15 - 16:00  | Estudio de caso: Aplicaciones del análisis de redes en la vigilancia y epidemiología de la influenza en el Sudeste Asiático y China | Ricardo Soares Magalhães |
@@ -47,9 +47,9 @@
 | Hora  | Actividad | Facilitador |
 |-----------|------------------------------|----------------------|
 | 9:00 - 9:15  | Resumen del Día 1 y visión general de las actividades prácticas | Ricardo Soares Magalhães |
-| 9:15 - 10:45  | sesion 1 - Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel) | Tatiana Proboste | Ricardo
+| 9:15 - 10:45  | sesion 1 - Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel) | Tatiana Proboste & Ricardo Soares Magalhães
 | 10:45 - 11:00  | **Pausa para el café** | 
-| 11:00 - 12:30  | sesion 2 -  Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel)  | Ricardo Soares Magalhães | Tatiana
+| 11:00 - 12:30  | sesion 2 -  Procesamiento de datos espaciales en R (carga y visualización de datos geoespaciales y Kernel)  | Tatiana Proboste & Ricardo Soares Magalhães
 | 12:30 - 13:30  | **Almuerzo** |  
 
 ### **Sesión Vespertina: Práctica de Análisis de Redes**  
