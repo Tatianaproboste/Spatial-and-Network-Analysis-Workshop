@@ -12,7 +12,7 @@
 
 ## **Día 1: Fundamentos Teóricos**
 ### **Objetivo:** Introducir conceptos y metodologías fundamentales en epidemiología espacial y análisis de redes.  
-### **Audiencia:** Participantes abiertos (estudiantes de pregrado, posgrado, académicos).  
+### **Audiencia:** Estudiantes de pregrado, posgrado, académicos
 
 ### **Sesión Matutina: Análisis Espacial & Influenza Aviar**  
 | Hora  | Tema | Ponente/Facilitador |
@@ -23,10 +23,11 @@
 | 10:25 - 10:45  | Pending | FAO-Vanessa Max |
 | 10:45 - 11:05  | **Pausa para el café** |  |
 | 11:05 - 11:25  | Pending | Carlos Orellana - Director protección pecuaria (SAG) |
-| 11:25 - 12:30  | Pending | SERNAPESCA |
-| 12:30 - 13:30  | **Almuerzo** |  |
+| 11:25 - 12:00  | Pending | Panel discussion |
+| 12:00 - 13:30  | **Almuerzo** |  |
 
 ### **Sesión Vespertina: Introducción al Análisis de Redes**  
+### **Audiencia:** Limitado a 30 participantes (investigadores, estudiantes de posgrado, funcionarios gubernamentales).  
 | Hora  | Tema | Ponente/Facilitador |
 |-----------|------------------------------|----------------------|
 | 13:30 - 14:15  | Introduccion y Estudio de caso: Uso del análisis espacial en la vigilancia de enfermedades | Ricardo Soares Magalhães |
