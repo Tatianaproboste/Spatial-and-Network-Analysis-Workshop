@@ -19,8 +19,8 @@
 |-----------|------------------------------|----------------------|
 | 9:30 - 9:40  | Bienvenida y presentación del taller | Representantes de PUC |
 | 9:40 - 10:05  | Introducción a la Influenza Aviar en Chile y contexto global | Pedro Jiménez |
-| 10:05 - 10:25  | Una Salud, Detección y Vigilancia de Agentes de Potencial Zoonótico | Juan Carlos Hormazábal |
-| 10:25 - 10:45  | Pending | FAO-Vanessa Max |
+| 10:05 - 10:25  | Una Salud, Detección y Vigilancia de Agentes de Potencial Zoonótico | Juan Carlos Hormazábal (ISP) |
+| 10:25 - 10:45  | Cooperación y asistencia técnica desde la FAO frente a la IAAP en America Latina y el Caribe | Larissa Zanette (FAO)|
 | 10:45 - 11:05  | **Pausa para el café** |  |
 | 11:05 - 11:25  | Modelo de gestión sanitaria del SAG ante la amenaza del virus IAAP | Carlos Orellana - Director protección pecuaria (SAG) |
 | 11:25 - 12:00  | Q&R - Panel discussion |
