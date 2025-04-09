@@ -22,7 +22,7 @@
 | 10:05 - 10:25  | Una Salud, Detección y Vigilancia de Agentes de Potencial Zoonótico | Juan Carlos Hormazábal (ISP) |
 | 10:25 - 10:45  | Cooperación y asistencia técnica desde la FAO frente a la IAAP en America Latina y el Caribe | Larissa Zanette (FAO)|
 | 10:45 - 11:05  | **Pausa para el café** |  |
-| 11:05 - 11:25  | Modelo de gestión sanitaria del SAG ante la amenaza del virus IAAP | Carlos Orellana - Director protección pecuaria (SAG) |
+| 11:05 - 11:25  | Modelo de gestión sanitaria del SAG ante la amenaza del virus IAAP | Hugo Araya - Jefe del Departamento de Salud Animal (SAG) |
 | 11:25 - 12:00  | Q&R - Panel discussion |
 | 12:00 - 13:30  | **Almuerzo** |  |
 
