@@ -1,0 +1,331 @@
+---
+title: "Construcción de redes de transmisión de enfermedades"
+author: "Tatiana Proboste"
+format:
+   html:
+    embed-resources: true
+    toc: true
+editor: visual
+output:
+  xaringan::moon_reader:
+    css: ['default','https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', 'slides.css']
+    lib_dir: libs
+    in_header: 
+      - 'targetblank.html'
+    nature:
+      navigation:
+        scroll: false
+      titleSlideClass: ['inverse','middle','left',my-title-slide]
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      beforeInit: "macros.js"
+      ratio: '16:9'
+bibliography: references.bib
+---
+
+🧭 Qué Vamos a Aprender
+
+En esta sesión de analisis de redes, exploraremos como construir redes usando los datos espaciales de los casos de influenza aviar. El objetivo es adquirir las herramientas necesarias para:
+
+Acceder a datos disponibles en línea, crear una red de movimientos, obtener información básica de la red y visualizarla.
+
+### 📦 Cargar Librerías
+
+**igraph**: para trabajar con redes [@igraph]
+
+**ggraph**: para visualizar redes [@ggraph]
+
+**adehabitatLT**: para trabajar con trayectorias de movimiento [@adehabitatLT]
+
+```{r echo=TRUE, warning=FALSE, output=F}
+library(tidyverse) # para manipulación de datos
+library(igraph) # para trabajar con redes
+library(ggraph) # para visualizar redes
+library(adehabitatLT)
+
+set.seed(123) 
+```
+
+## Cargar y limpiar los datos
+
+Antes de comenzar cualquier análisis, es fundamental revisar y limpiar la base de datos. En este paso vamos a:
+
+-   Cargar los datos originales
+-   Eliminar tildes y convertir todo a minúsculas
+-   Limpiar los nombres de las columnas
+-   Quitar las filas sin información de especie
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+library(readr)
+library(janitor)
+library(stringi)
+
+data <- read_csv("./Raw_data/data.csv",
+                locale = locale(encoding = "ISO-8859-1")) %>%
+  mutate(across(where(is.character), ~ stri_trans_general(., "Latin-ASCII"))) %>%
+  mutate(across(where(is.character), tolower)) %>%  # pasar a minúsculas
+  clean_names() %>%                 
+  drop_na(especie) #quitar filas sin especie
+  
+```
+
+## Modificar y preapar datos
+
+Antes de construir redes o trayectorias, vamos a simplificar nuestra base de datos para quedarnos solo con las columnas que necesitamos: la fecha de muestreo, las coordenadas (longitud, latitud) y la especie.
+
+Transformar la columna de fecha (fecha_toma_muestra) que está en formato 'texto' (caracter) a un objeto de tipo 'fecha' para que R pueda interpretar correctamente.
+
+```{r echo=TRUE, warning=FALSE, output=T}
+
+data_sub <- data %>% 
+  dplyr::select(fecha_toma_muestra, longitude, latitude, especie) %>% # selecionar columnas
+  mutate(fecha = as.Date(fecha_toma_muestra, format = "%d/%m/%Y"))# convertir a fecha
+
+print (data_sub)
+
+```
+
+## Generar identificador único
+
+Para poder analizar la co-ocurrencia de especies y el movimiento del virus, necesitamos identificar de forma única cada observación. Para eso, vamos a crear un código llamado muestra_id combinando la longitud, latitud y la fecha de la muestra.
+
+```{r echo=TRUE, warning=FALSE, output=T}
+
+data_sub <- data_sub %>%
+  mutate(muestra_id = paste(longitude, latitude, fecha_toma_muestra, sep = "_")) 
+
+```
+
+Matriz de co-ocurrencia de especies![Author: Jesus Najera](images/matrix.png "Author: Jesus Najera")
+
+```{r echo=TRUE, warning=FALSE, output=F}
+
+presencia <- data_sub %>%
+  dplyr::select(muestra_id, especie) %>%
+  distinct() %>%
+  mutate(presente = 1) %>%
+  pivot_wider(names_from = especie, values_from = presente, values_fill = 0)
+
+# Convertir a matriz y calcular co-ocurrencias
+matriz <- as.matrix(presencia[,-1])
+coocurrencia <- t(matriz) %*% matriz 
+
+print(coocurrencia)
+
+```
+
+Crear y visualizar la red
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+# Crear red
+red <- graph_from_adjacency_matrix(coocurrencia, 
+                                   mode = "undirected",
+                                   diag = FALSE)
+print(red)
+```
+
+Ahora veamos como se ve la red en un plot
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+# Graficar red
+plot(
+  red,
+  main = "Red de co-ocurrencia entre especies",
+  vertex.label.dist = 0.5,
+  edge.curved = 0.2
+)
+
+
+```
+
+A simple vista podemos ver que hay especies que estan más conectadas que otras, lo que nos dar una idea de la importancia de cada especie en la red.
+
+# Medidas de centralidad:
+
+1.  Degree (grado): Mide el numero de conexiones directas tiene un nodo. Un nodo con alto degree está conectado con muchos otros nodos, lo que lo hace potencialmente influyente a nivel de la red.
+
+![](images/degree.png){fig-align="center" width="400"}
+
+En redes dirigidas, se puede dividir en in-degree (entrantes) y out-degree (salientes).
+
+2.  Betweenness (intermediación): Mide cuántas veces un nodo aparece en los caminos más cortos entre otros nodos. Un nodo con alta betweenness, actúa como un puente o intermediario crítico en la red, controlando o facilitando el flujo de información.
+
+![](images/betweenness.png){fig-align="center" width="400"}
+
+2.  Eigenvector centrality (centralidad de vector propio): Evalúa la importancia de un nodo basado en la importancia o influencia de los nodos con los que está conectado. Un nodo conectado a otros nodos muy influyentes tendrá una alta centralidad de eigenvector.
+
+![](images/Eigenvector.png){fig-align="center" width="400"}
+
+2.  K-core: Identifica grupos cohesivos dentro de la red. Un nodo pertenece al k-core si tiene al menos k conexiones dentro del mismo subgrupo. Cuanto mayor sea el valor de k, más central y conectado está el nodo dentro de la red. Sirve para encontrar zonas densamente conectadas.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+library(igraph)
+
+betweenness <- betweenness(red)
+degree <- degree(red)
+eigenvector <- evcent(red)$vector
+kcore <- coreness(red)
+
+# Combinamos todos los valores en un data frame
+medidas <- data.frame(
+  betweenness = betweenness,
+  degree = degree,
+  eigenvector = eigenvector,
+  kcore = kcore
+)
+
+print (medidas)
+```
+
+La especie con mayor `betweenness` podría actuar como un puente en la disperción del virus. Especies con alto `degree` tienen mayor interacción, mientras que un alto `k-core` indica centralidad dentro de un grupo denso.
+
+Para crear una red, esta vez vamos a incorporar un peso, tomando en cuenta la cantidad de interaciones.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+
+# Crear red con un peso
+red_uni <- graph_from_adjacency_matrix(coocurrencia, 
+                                   mode = "undirected",
+                                   weight = TRUE,
+                                   diag = FALSE)
+```
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+plot(
+  red_uni,
+  main = "Red de co-ocurrencia entre especies",
+  vertex.label.dist = 0.5,
+  edge.curved = 0.2,
+  edge.width = E(red_uni)$weight)
+
+```
+
+# Trajectoria: Visualización del Movimiento del Virus
+
+Usaremos una red *unidirecional* para estimar el movimiento de norte a sur y las interaciones entre especies, usando la primera fecha de muestreo por especie en cada punto. Esto nos permitirá visualizar el movimiento del virus a lo largo del tiempo y por especies.
+
+Para calcular trayectorias de movimiento, necesitamos que las fechas estén en un formato que incluya **hora**. Para transformas las fechas a este formato especifico vamos a usa la función `as.POSIXct()`.
+
+En este análisis, trabajaremos con el paquete `adehabitatLT`, que está diseñado para analizar datos de movimiento (como los de collares GPS en fauna silvestre). Aunque aquí no tenemos animales individuales, simularemos trayectorias del **virus** usando la **latitud como indicador de movimiento norte-sur** por especie.
+
+***Importante:** Este ejemplo está basado en un subconjunto filtrado de los datos, considerando solo la primera detección positiva por especie en cada punto geográfico hacia el sur. Por lo tanto, **no representa una conclusión epidemiológica real**, sino una herramienta para aprender a trabajar con trayectorias en R.*
+
+# 1: Cargar los datos
+
+Cargar los datos filtrados que contienen solo la primera detección positiva por especie en cada punto geográfico hacia el sur. Esta base de datos fue creada a partir de 'data' con la diferencia que 'data_filtrada' solo tiene el primer reporte de especie positiva de norte a sur.
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+
+data_filtrada <- read_csv("./Raw_data/data_filtrada.csv")
+
+library(lubridate)
+
+data_filtrada <- data_filtrada %>%
+   mutate(fecha = fecha + seconds(row_number())) %>%
+   mutate(fecha = as.POSIXct(fecha, tz = "UTC")) %>% 
+  as.data.frame()
+
+
+```
+
+# 2: Trayectorias con `adehabitatLT`
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+library(adehabitatLT)
+
+ltraj_obj <- as.ltraj(xy = data_filtrada[, c('longitude', 'latitude')],
+                      date = data_filtrada$fecha,
+                      id = data_filtrada$especie,
+                      slsp = "remove")
+
+plot(ltraj_obj)
+
+```
+
+# 3. Preparar trayectorias con coordenadas de inicio y fin
+
+*Nota:* Aunque `df_ltraj` ya contiene una columna `dist` que representa la distancia entre puntos, tenemos que tener en cuenta que estas distancias estan calculadas en grado porque usamos un sistema de referencia en grados. Para calcular la distancia en metros, necesitariamos convertir las coordenadas a un sistema de referencia UTM.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+
+df_traj <- ld(ltraj_obj) %>%
+  arrange(id, date) %>% # ordenar por id y fecha
+  group_by(id) %>% # agrupar por id
+  mutate(
+    xend = lead(x),
+    yend = lead(y),
+    date_next = lead(date)
+  ) %>% # calcular coordenadas de fin y fecha siguiente
+  ungroup() %>% 
+  filter(!is.na(xend), !is.na(yend), !is.na(date)) %>% # eliminar filas con NA
+  mutate(
+    dist_grados = sqrt((xend - x)^2 + (yend - y)^2), # distancia en grados decimales 
+    dt_dia = as.numeric(difftime(date_next, date, units = "days")),  # diferencia en días
+    vel_grados_dia = dist_grados / dt_dia # velocidad en  grados/dia
+  )
+```
+
+Este `df_traj` limpio puede ahora usarse para:
+
+-   Calcular velocidades o distancias entre puntos
+
+-   Visualizar trayectorias con flechas usando `ggplot2` o `tmap`
+
+# 4: Crear y visualizar red de movimiento
+
+Antes creamos una red usando una matriz. Ahora vamos a crear una selecionando los nodos y los links (edges).
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+
+# Crear identificador único por punto
+nodos <- df_traj %>%
+  dplyr::select(pkey, x, y, id, date) %>%
+  distinct()
+
+# Crear conexiones entre puntos consecutivos hacia el sur
+edges <- nodos %>%
+  arrange(id , date) %>%
+  group_by(id) %>%
+  mutate(next_node = lead(pkey)) %>%
+  filter(!is.na(next_node)) %>%
+  dplyr::select(from = pkey, to = next_node, id)
+
+# Crear red dirigida
+red_s <- graph_from_data_frame(d = edges, vertices = nodos, directed = TRUE)
+
+```
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+
+library(ggraph)
+
+# Visualizar red usando coordenadas reales
+ggraph(red_s, layout = 'manual', x = V(red_s)$x, y = V(red_s)$y) +
+  geom_edge_link(aes(color = id), arrow = arrow(length = unit(3, 'mm')), end_cap = circle(3, 'mm')) +
+  geom_node_point(aes(color = id), size = 2) +
+  theme_minimal() +
+  labs(title = "Red de movimiento del virus hacia el sur", x = "Longitud", y = "Latitud")
+
+```
+
+# 5: ¿Qué especie se movió más rápido?
+
+```{r}
+velocidad_por_especie <- df_traj %>%
+  group_by(id) %>%
+  summarise(
+    vel_media_grados_dia = mean(vel_grados_dia, na.rm = TRUE),
+    vel_max_grados_dia = max(vel_grados_dia, na.rm = TRUE),
+    movimientos = n()
+  ) %>%
+  arrange(desc(vel_max_grados_dia))
+
+print(velocidad_por_especie)
+```
+
+Esta tabla y gráfico nos permiten identificar qué especie mostró mayor velocidad de desplazamiento aparente.
+
+## Referencias
+
+\[[igraph](https://igraph.org/)\] (https://igraph.org/)

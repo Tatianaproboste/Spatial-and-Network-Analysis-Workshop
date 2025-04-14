@@ -1,0 +1,440 @@
+---
+title: "Visualización de datos espaciales"
+author: "Tatiana Proboste"
+format:
+   html:
+    embed-resources: true
+    toc: true
+editor: visual
+output:
+  xaringan::moon_reader:
+    css: ['default','https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', 'slides.css']
+    lib_dir: libs
+    in_header: 
+      - 'targetblank.html'
+    nature:
+      navigation:
+        scroll: false
+      titleSlideClass: ['inverse','middle','left',my-title-slide]
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      beforeInit: "macros.js"
+      ratio: '16:9'
+bibliography: references.bib
+---
+
+🧭 Qué Vamos a Aprender
+
+En esta sesión de **visualización de datos espaciales**, exploraremos datos espaciales y aprenderemos a visualizar y modificarlos. El objetivo es que adquieras las herramientas necesarias para:
+
+-   Acceder a datos de libre acceso
+
+-   Realizar transformaciones, cambios de sistema de coordenadas (CRS), extracción y cálculos básicos
+
+-   Llevar a cabo la manipulación de datos espaciales
+
+### 🗂️ Organiza Tus Datos
+
+Antes de comenzar a trabajar en R, una buena práctica es crear una nueva carpeta con el nombre de nuestro proyecto: **`visualizacion_espacial`**
+
+Dentro de esta carpeta, se recomienda crear tres subcarpetas:
+
+-   `raw_data` – para los datos originales
+
+-   `outputs` – para los resultados, gráficos o mapas
+
+-   `scripts` – para guardar nuestros códigos en R
+
+### 📦 Cargar Librerías
+
+-   **`sf`** : significa *Simple Features*, y es fundamental para trabajar con datos espaciales vectoriales [@sf]
+
+-   **`tmap`**: es un paquete especializado en la visualización de mapas de forma flexible [@tmap]
+
+-   **`geodata`**: es un paquete que permite descargar datos climáticos y ambientales de WorldClim directamente en R. Los datos están disponibles para diferentes variables climáticas, como temperatura, precipitación, etc., y se pueden descargar en distintas resoluciones y períodos de tiempo. [@geodata]
+
+-   **`terra`**: es un paquete para trabajar con datos espaciales raster. [@terra]
+
+```{r, echo=TRUE, warning=FALSE, output=FALSE}
+library(tidyverse) # cleaning, wrangling 
+library(adehabitatHR)
+```
+
+### Introducción
+
+En esta sesión, exploraremos las funciones y paquetes básicos necesarios para visualizar datos geoespaciales utilizando información sobre casos de influenza aviar en Chile (includos en la carpeta Day 2 \> raw_data\> 'data'.
+
+Los datos se encuentran en un archivo CSV que contiene información de latitud y longitud. Primero, debemos acceder a los datos y **filtrar la información que no necesitamos**.
+
+Una vez hecho esto, podremos **mapear los puntos donde están ubicados los casos por especie**, utilizando un *shapefile* con los límites geográficos de Chile.
+
+## 1. Datos de libre acceso.
+
+El paquete **`chilemapas`** proporciona mapas vectoriales de las divisiones político-administrativas de Chile listos para usar en R. Incluye capas de **comunas**, **provincias** y **regiones**.
+
+Este paquete provee directamente objetos de tipo **`sf`** (simple features) con la geometría de cada comuna. Trae además tablas con códigos y nombres territoriales para realizar uniones. Por ejemplo, luego de cargar `chilemapas`, se puede acceder al *sf* de comunas con `mapa_comunas` y graficarlo o manipularlo con funciones de **ggplot2** o **sf**. Para obtener agregados por provincia o región, el paquete ofrece funciones como `generar_provincias()` o `generar_regiones()` que combinan las comunas por código territorial. En resumen, **chilemapas** entrega *“mapas terrestres con topologías simplificadas”* de Chile listos para usarse fácilmente en visualizaciones y análisis.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+library(chilemapas)
+library(sf)
+
+print(mapa_comunas)
+print(codigos_territoriales)
+
+# Convertir explícitamente a sf (por si perdió el atributo)
+comunas <- st_as_sf(mapa_comunas) %>% 
+  left_join(codigos_territoriales) 
+
+library(ggplot2)
+ggplot(comunas) +
+  geom_sf(fill = "lightgreen", color = "gray") +
+  labs(title = "Mapa de Chile por comunas") +
+  theme_minimal()
+```
+
+Podemos dejar fuera la Isla de Pascua (Rapanui) para visualizar mejor el mapa continental.
+
+```{r echo=TRUE, output=F}
+comunas <-  comunas %>% filter(nombre_comuna!= "Isla de Pascua")
+
+ggplot(comunas) +
+  geom_sf(fill = "lightgreen", color = "gray") +
+  labs(title = "Mapa de Chile por comunas") +
+  theme_minimal()
+
+# Guardar como archivo rds, que es un formato de R
+saveRDS(comunas, file = "comunas.rds")
+```
+
+Datos de variables climaticas
+
+Vamos a usar var = "tavg", que se refiere a la temperatura promedio. Para ver más opciones de este paquete, podemos usar la función ?geodata.
+
+```{r, echo=F, warning=FALSE, output=F}
+library(geodata)
+
+chile_tavg <- worldclim_country("Chile", var="tavg", path=tempdir())
+```
+
+## 2. Cargar los datos de influenza aviar.
+
+```{r, echo=T, warning=FALSE, output=F}
+library(readr)
+
+data <- read_csv("./Raw_data/data.csv",
+                 locale = locale(encoding = "ISO-8859-1")) # significa que el archivo CSV contiene caracteres especiales (como acentos o símbolos) que no están codificados correctamente para R. Esto suele pasar cuando: El archivo tiene codificación UTF-8 (o ISO-8859-1) pero R lo intenta leer con otra. Hay símbolos no reconocidos, como ñ, tildes (á, é…), comillas raras, etc.
+
+
+
+```
+
+### Limpiar datos
+
+`janitor` es un paquete para limpiar bases de datos. Lo usaremos para limpiar los nombres de las columnas.
+
+`stringi` es un paquete para limpiar valores de texto: quitar tildes y pasar a minúsculas.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+library(janitor)
+
+data <- clean_names(data) 
+
+library(stringi)
+
+data <- data %>%
+  mutate(across(where(is.character), ~ stri_trans_general(., "Latin-ASCII"))) %>%
+  mutate(across(where(is.character), ~ str_to_lower(.)))
+
+comunas<- comunas %>%
+  mutate(across(where(is.character), ~ stri_trans_general(., "Latin-ASCII"))) %>%
+  mutate(across(where(is.character), ~ str_to_lower(.)))
+```
+
+## 3. Visualizacion de datos
+
+### 3.1 Puntos
+
+Primero, vamos a usar un plot simple para ver como se distribuyen los puntos en el espacio.
+
+**Puntos: usando *`ggplot`***
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+
+ggplot(data, aes(x=longitude, y=latitude, color=especie))+ 
+  geom_point()+  
+  theme_bw() 
+```
+
+También podemos hacer una visualización interactiva usando **plotly**, un paquete que permite explorar información individual de cada punto.
+
+```{r, echo=TRUE, warning=FALSE, output=FALSE}
+library(plotly)
+```
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+
+ggplotly(
+  ggplot(data, aes(x=longitude, y=latitude, color= especie))+ 
+  geom_point()+  
+  theme_bw() 
+) 
+```
+
+**Puntos: usando *tmap*** (paquete para crear mapas)
+
+Si intentamos usar los datos de los casos de influenza aviar con tmap, **no va a funcionar** directamente. Necesitamos transformar nuestra **base de datos** en un base de datos **espacial** usando la función `st_as_sf()` del paquete sf.
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+data_sp <-  st_as_sf(data, coords = c('longitude', 'latitude'), crs = 4326) # WGS 84
+
+```
+
+Antes de comenzar a mapear, necesitamos revisar el **Sistema de Referencia de Coordenadas (CRS)** del data frame espacial. El **CRS** define cómo los elementos espaciales de los datos se relacionan con la superficie de la Tierra.
+
+**Revisemos qué CRS tenemos** con la función `st_crs()`\
+Y si queremos **transformar el CRS**, usamos la función `st_transform()`.
+
+```{r, echo=T, warning=FALSE, output=F}
+st_crs(data_sp) #EPSG:4326
+st_transform(data_sp, 4283) #GDA94 
+```
+
+## Visualización Interactiva con `tmap_mode("view")`
+
+`tmap` permite dos modos de visualización:
+
+-   **`"plot"`**: modo estático (ideal para informes impresos o PDF)
+
+-   **`"view"`**: modo interactivo (permite explorar el mapa como en una aplicación web)
+
+En este caso, activamos el modo interactivo con `tmap_mode("view")`, lo que nos permite:
+
+-   Mover el mapa
+
+-   Hacer zoom
+
+-   Ver información de los puntos
+
+Luego, usamos `tm_shape()` para cargar el objeto espacial y `tm_dots()` para visualizar los puntos.
+
+Una vez terminado, podemos volvemos al modo estático con `tmap_mode("plot")`.
+
+```{r, echo=TRUE, warning=FALSE, output=F}
+
+library(tmap)
+
+```
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+tmap_mode('view')  # use 'plot' to turn off the interactive view
+
+tm_shape(data_sp)+  
+  tm_dots()
+
+```
+
+Ahora agregemos color por especie
+
+```{r,echo=TRUE, warning=FALSE, output=T}
+
+tm_shape(data_sp) +
+  tm_dots(fill = "especie") +
+  tm_scale(values = "Set2")  # define la paleta aquí
+
+```
+
+Podemos mejorar el mapa y agregar una escala y compás
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+tmap_mode("plot")  # Asegúrate de estar en modo estático
+
+mi_mapa <- tm_shape(comunas) + 
+  tm_polygons(col = "grey10", fill_alpha = 0.1) +
+
+  tm_shape(data_sp) +
+  tm_dots(fill = "especie") +
+
+  tm_scale(values = "Set2") +  # paleta de colores
+
+  tm_layout(
+    legend.outside = TRUE,               # ACTIVAR que la leyenda esté fuera
+    legend.outside.position = "right",   # derecha del mapa
+    legend.title.size = 1.0,
+    legend.text.size = 0.8,
+    frame = FALSE                        # opcional: quita el marco del mapa
+  ) +
+
+  tm_compass(position = c("left", "bottom")) +
+  tm_grid(lines = FALSE) +
+  tm_scalebar(text.size = 0.4, position = c("left", "bottom"))
+
+mi_mapa
+
+```
+
+Para guardar el mapa, podemos usar el siguiente código:
+
+```{r echo=T, warning=FALSE, output=F}
+tmap_save(tm = mi_mapa, filename = "mapa_chile.png", width = 10, height = 7)
+
+```
+
+### 3.2 Polígonos
+
+Ahora vamos a usar el shapefile de comunas y vamos a contar el número de muestras tomadas por comuna.
+
+```{r,echo=TRUE, warning=FALSE, output=F}
+casos_por_comuna <- data %>% group_by(especie, comuna) %>% 
+  summarise(total_muestras = sum(n_animal_muestreado))
+  
+casos_por_comuna_sp <- comunas %>% 
+  left_join(casos_por_comuna, by = c("nombre_comuna" = "comuna")) 
+
+```
+
+Podemos crear un mapa interactivo tipo coroplético con tmap. Para ello, vamos a filtrar solo las muestras de aves piquero, para simplificar el ejemplo.
+
+```{r,echo=TRUE, warning=FALSE, output=T}
+
+piqueros <- casos_por_comuna_sp %>% filter(especie == "piquero")
+
+tmap_mode("view")
+
+tm_shape(piqueros) +
+  tm_fill('total_muestras') +
+tm_shape(data_sp) +
+  tm_dots(fill = "especie") +
+  tm_scale(values = "Set2")  # define la paleta de colores aquí
+```
+
+### 3.3 Raster
+
+Usaremos los datos de temperatura que descargamos en el paso 'datos de libre acceso'.
+
+```{r, echo=F, warning=FALSE, output=F}
+head(chile_tavg)
+
+```
+
+Como ahora vamos a trabajar con un raster, tenemos que usar el paquete ***terra***.
+
+```{r, echo=T, warning=FALSE, message=FALSE, output=F}
+library(terra)
+
+tmin_chile <- mask(chile_tavg, comunas)
+ 
+```
+
+```{r, echo=TRUE, warning=FALSE, output=T}
+
+ tm_shape(tmin_chile$CHL_wc2.1_30s_tavg_1)+
+   tm_raster()
+
+```
+
+## 4. Estimación de densidad por Kernel
+
+En este ejercicio, vamos a realizar un análisis de densidad de kernel (KDE) para visualizar la distribución espacial de casos de influenza aviar. Utilizaremos datos de puntos (data_sp) que representan ubicaciones de casos, y un shapefile con los límites comunales para superponer la información.
+
+```{r,echo=TRUE, warning=FALSE, output=T}
+library(adehabitatHR)
+library(terra)
+
+spd <- as_Spatial(data_sp) # Convertir a objeto espacial
+  
+# Calcular el KDE usando el paquete adehabitatHR
+kde.output <- kernelUD(spd, h="href", grid = 1000)
+
+kde <- rast(kde.output)  # convertir a raster
+
+#  si las comunas son un objeto sf:
+comunas <- vect(comunas)  # convertir a SpatVector
+
+# cortar el raster a la extensión de las comunas
+kde_clipped <- mask(kde, comunas)
+
+# Plot con tmap
+tm_shape(kde_clipped) +
+  tm_raster("ud")
+
+
+```
+
+Usamos tmap para visualizar el resultado, mostrando la densidad de casos junto con los límites comunales.
+
+```{r,echo=TRUE, warning=FALSE, output=T}
+tm_shape(kde_clipped) +
+  tm_raster(style = "cont", palette = "viridis", title = "Case Density") +
+  tm_shape(comunas) +
+  tm_borders(col = "black") +
+  tm_layout(main.title = "Kernel Density of Avian Influenza Cases",
+            legend.outside = TRUE)
+```
+
+Conclusión: El mapa resultante permite identificar las áreas con mayor concentración de casos, lo cual puede ser útil para priorizar esfuerzos de vigilancia o intervención. La técnica KDE es una herramienta para entender patrones espaciales a partir de datos puntuales.
+
+## 5. Análisis extras
+
+Juntar dos bases de datos, 'comunas', que es u poligono espacial, y la base de datos bajada de INE con la information de aves del censo.
+
+### Descripción de variables:
+
+```{r, echo=T, warning=FALSE, output=F}
+
+aves <- read_csv("Raw_data/INE_seccion_10_aves.csv")
+
+library(janitor)
+aves <- clean_names(aves) # limpia los nombres de las columnas
+
+# Limpiar valores de texto: quitar acentos y pasar a minúsculas
+aves <- aves %>%
+  mutate(across(where(is.character), ~ stri_trans_general(., "Latin-ASCII"))) %>%
+  mutate(across(where(is.character), ~ str_to_lower(.)))
+
+```
+
+Esta tabla se encuentra en este [link](https://www.ine.gob.cl/docs/default-source/censo-agropecuario/base-de-datos/2021/documentos/manual-de-usuario-de-bases-de-datos.pdf?sfvrsn=79ab6fff_4).
+
+![](images/INE_table.png) Podemos calcular cuántas aves tenemos por comuna (para este ejemplo solo usaremos los datos de "GA185"
+
+```{r, echo=T, warning=FALSE, output=T}
+
+aves_comuna <- aves %>% 
+  group_by(region) %>% # agrupa por region
+  summarise(total_aves = sum(ga185, na.rm = TRUE)) %>% # sumamos todos los datos por region
+  mutate(region = str_replace_all(region, "de ", "") %>%  
+           str_trim()) %>% 
+  mutate(region = str_replace_all(region, "del ", "") %>% 
+           str_trim())
+
+```
+
+Agregemos estos datos a nuestros datos de casos de influenza aviar.
+
+Este paso solo funcionará si todos los nombres en las dos bases de datos que estamos intentando unir coinciden exactamente. En la base de datos original (bajada del SAG), los nombres de las regiones fueron modificados para que coincidieran con los del censo de aves bajado del INA.
+
+```{r}
+# 
+ full_data <- st_as_sf(comunas) %>% 
+  left_join(aves_comuna, by = c("nombre_region" = "region")) 
+head(full_data)
+
+```
+
+## Referencias
+
+[sf Package Documentation](https://r-spatial.github.io/sf/)
+
+[Introduction to mapping in R](https://medium.com/analytics-vidhya/mapping-australia-in-r-6ce092c48b49)
+
+[Plotting simple features](https://r-spatial.github.io/sf/articles/sf5.html)
+
+[tmap: get started!](https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html)
+
+[Spatial Statistics for Data Science](https://www.paulamoraga.com/book-spatial/types-of-spatial-data.htm)
+
+**Otros softwares para análisis espaciales**
+
+Para el análisis de clústeres, se puede utilizar **SaTScan**.\
+Para la detección de *hotspots*, se puede emplear **GeoDa**.
