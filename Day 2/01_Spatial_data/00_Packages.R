@@ -17,7 +17,8 @@ required_packages <- c(
   "plotly",        # Gráficos interactivos
   "units",          # Unidades para medidas (se usa internamente con `sf`)
   "lubridate",      # Manejo de fechas si se usa con POSIXct
-  "Chilemapas"
+  "Chilemapas",
+  "terra"
 )
 
 # Install missing packages
